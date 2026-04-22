@@ -204,7 +204,39 @@ Attack 2 worked because the attacker removed the password check, so they could l
 Attack 3 worked because the attacker made the login condition always true, so the system let them in without a real username and password.
 Attack 4 worked because the attacker tricked the search into also showing data from the users table, including login details.
 
+#TASK4
+#the secure code.
+import sqlite3
 
+conn = sqlite3.connect('nyondo_stock.db')
+
+def search_product_safe(name):
+    query = "SELECT * FROM products WHERE name LIKE ?"
+    rows = conn.execute(query, (f"%{name}%",)).fetchall()
+    return rows
+
+def login_safe(username, password):
+    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    row = conn.execute(query, (username, password)).fetchone()
+    return row
+
+# These must ALL return [] or None when you run them
+print('Test 1:', search_product_safe("' OR 1=1--"))
+print('Test 2:', search_product_safe("' UNION SELECT id,username,password,role FROM users--"))
+print('Test 3:', login_safe("admin'--", 'anything'))
+print('Test 4:', login_safe("' OR '1'='1", "' OR '1'='1"))
+
+#the output1
+ python secure.py
+Test 1: []
+Test 2: []
+Test 3: None
+Test 4: None
+
+#The explanation.
+Using ? prevents SQL injection because whatever the user types is treated as just input, not part of the SQL command. 
+But with an f-string, the user input is added directly into the query, so someone can type special SQL and change what the query does. 
+Parameterized queries are safer because they keep the SQL code and the user input separate.
 
 
 
